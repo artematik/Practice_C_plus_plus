@@ -1,0 +1,577 @@
+#include <iostream>
+#include <iterator>
+#include <string>
+#include <vector>
+
+class Matrix
+{
+private:
+	int n = 0;
+	int m = 0;
+	double* data;
+
+	void Create()
+	{
+		this->data = new double[n * m];
+		for (int i = 0; i < n * m; ++i) this->data[i] = 0;
+	}
+public:
+	Matrix(std::string s)
+	{
+		std::string value;
+		int size = 0;
+		int count = 0;
+		for (int i = 1; i < s.size() - 1; ++i)
+		{
+			if (s[i] == '[')
+			{
+				size++;
+			}
+			if (s[i] == ',')
+			{
+				count++;
+			}
+		}
+		count += size;
+		count /= size;
+		this->n = size;
+		this->m = count;
+		//создали массив для данных нашей матрицы
+		this->data = new double[this->n * this->m];
+		for (int i = 0; i < this->m * this->n; ++i) this->data[i] = 0;
+
+		int index = 0;
+		for (int i = 1; i < s.size() - 1; i++)
+		{
+			if ((48 <= s[i] && s[i] <= 57) || s[i] == '.')
+			{
+				value += s[i];
+			}
+			else
+			{
+				if (value != "")
+				{
+					double number = stod(value);
+					this->data[index] = number;
+					index++;
+					value = "";
+				}
+			}
+		}
+	}
+
+	Matrix()
+	{
+		Create();
+	}
+	Matrix(const Matrix& copy)
+	{
+		this->n = copy.n;
+		this->m = copy.m;
+		this->data = new double[copy.n * copy.m];
+		for (int i = 0; i < copy.n; i++)
+		{
+			for (int j = 0; j < copy.m; j++)
+			{
+				this->data[i * m + j] = copy.data[i * m + j];
+			}
+		}
+	}
+	Matrix(Matrix&& moved)
+	{
+		this->n = moved.n;
+		this->m = moved.m;
+		data = moved.data;
+		moved.data = nullptr;
+	}
+	Matrix(int n, int m)
+	{
+		this->n = n;
+		this->m = m;
+		Create();
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = 0; j < m; ++j)
+			{
+				this->data[i * m + j] = 0;
+			}
+		}
+
+	}
+	Matrix(int n, int m, double value)
+	{
+		this->n = n;
+		this->m = m;
+		Create();
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = 0; j < m; ++j)
+			{
+				this->data[i * m + j] = value;
+			}
+		}
+	}
+	void Identity(int n, int m)
+	{
+		if (n == m)
+		{
+			this->n = n;
+			this->m = m;
+			this->data = new double[n * m];
+			for (int i = 0; i < n; ++i)
+			{
+				for (int j = 0; j < m; ++j)
+				{
+					if (j == i)
+						this->data[i * m + j] = 1;
+					else
+						this->data[i * m + j] = 0;
+				}
+			}
+		}
+		else
+		{
+			std::cout << "This operation works only for the square matrix";
+		}
+
+
+
+	}
+	void Zero(int n, int m)//сделано
+	{
+		this->n = n;
+		this->m = m;
+		Create();
+	}
+	void Random(int n, int m)//сделано
+	{
+		this->n = n;
+		this->m = m;
+		Create();
+		for (int i = 0; i < n * m; ++i) this->data[i] = (double)rand() / rand();
+	}
+	void Print()
+	{
+		for (int i = 0; i < this->n; ++i)
+		{
+			for (int j = 0; j < this->m; ++j)
+			{
+				std::cout << this->data[i * m + j] << " ";
+			}
+			std::cout << std::endl;
+		}
+	}
+
+    double& operator()(int row, int col) {
+        return data[row * m + col];
+    }
+    class Row {
+        Matrix& matrix;
+        int row;
+
+    public:
+        Row(Matrix& matrix, int row) : matrix(matrix), row(row) {}
+
+        class iterator {
+            Matrix& matrix;
+            int row;
+            int col;
+
+        public:
+            using iterator_category = std::random_access_iterator_tag;
+            using value_type = double;
+            using difference_type = std::ptrdiff_t;
+            using pointer = double*;
+            using reference = double&;
+
+            iterator(Matrix& matrix, int row, int col) : matrix(matrix), row(row), col(col) {}
+
+            double& operator*() {
+                return matrix(row, col);
+            }
+
+            iterator& operator++() {
+                col++;
+                return *this;
+            }
+
+            iterator& operator--() {
+                col--;
+                return *this;
+            }
+
+            iterator& operator+=(difference_type n) {
+                col += n;
+                return *this;
+            }
+
+            iterator operator+(difference_type n) {
+                return iterator(matrix, row, col + n);
+            }
+
+            iterator& operator-=(difference_type n) {
+                col -= n;
+                return *this;
+            }
+
+            iterator operator-(difference_type n) {
+                return iterator(matrix, row, col - n);
+            }
+
+            difference_type operator-(const iterator& other) {
+                return col - other.col;
+            }
+
+            reference operator[](difference_type n) {
+                return *(*this + n);
+            }
+
+            bool operator==(const iterator& other) {
+                return col == other.col && row == other.row;
+            }
+
+            bool operator!=(const iterator& other) {
+                return !(*this == other);
+            }
+
+            bool operator<(const iterator& other) {
+                return col < other.col;
+            }
+
+            bool operator>(const iterator& other) {
+                return col > other.col;
+            }
+
+            bool operator<=(const iterator& other) {
+                return col <= other.col;
+            }
+
+            bool operator>=(const iterator& other) {
+                return col >= other.col;
+            }
+        };
+
+        iterator begin() {
+            return iterator(matrix, row, 0);
+        }
+
+        iterator end() {
+            return iterator(matrix, row, matrix.m);
+        }
+    };
+
+    class Column {
+        Matrix& matrix;
+        int col;
+
+    public:
+        Column(Matrix& matrix, int col) : matrix(matrix), col(col) {}
+
+        class iterator {
+            Matrix& matrix;
+            int row;
+            int col;
+
+        public:
+            using iterator_category = std::random_access_iterator_tag;
+            using value_type = double;
+            using difference_type = std::ptrdiff_t;
+            using pointer = double*;
+            using reference = double&;
+
+            iterator(Matrix& matrix, int row, int col) : matrix(matrix), row(row), col(col) {}
+
+            double& operator*() {
+                return matrix(row, col);
+            }
+
+            iterator& operator++() {
+                ++row;
+                return *this;
+            }
+
+            iterator& operator--() {
+                --row;
+                return *this;
+            }
+
+
+            iterator& operator+=(difference_type n) {
+                row += n;
+                return *this;
+            }
+
+            iterator operator+(difference_type n) {
+                return iterator(matrix, row + n, col);
+            }
+
+            iterator& operator-=(difference_type n) {
+                row -= n;
+                return *this;
+            }
+
+            iterator operator-(difference_type n) const {
+                return iterator(matrix, row - n, col);
+            }
+
+            difference_type operator-(const iterator& other) {
+                return row - other.row;
+            }
+
+            reference operator[](difference_type n) {
+                return *(*this + n);
+            }
+
+            bool operator==(const iterator& other) {
+                return row == other.row && col == other.col;
+            }
+
+            bool operator!=(const iterator& other) {
+                return !(*this == other);
+            }
+
+            bool operator<(const iterator& other) {
+                return row < other.row;
+            }
+
+            bool operator>(const iterator& other) {
+                return row > other.row;
+            }
+
+            bool operator<=(const iterator& other) {
+                return row <= other.row;
+            }
+
+            bool operator>=(const iterator& other) {
+                return row >= other.row;
+            }
+        };
+
+        iterator begin() {
+            return iterator(matrix, 0, col);
+        }
+
+        iterator end() {
+            return iterator(matrix, matrix.n, col);
+        }
+    };
+
+    class Row_view {
+        Matrix& matrix;
+
+    public:
+        Row_view(Matrix& matrix) : matrix(matrix) {}
+
+        class iterator {
+            Matrix& matrix;
+            int row;
+
+        public:
+            using iterator_category = std::random_access_iterator_tag;
+            using value_type = Row;
+            using difference_type = std::ptrdiff_t;
+            using pointer = Row*;
+            using reference = Row&;
+
+            iterator(Matrix& matrix, int row) : matrix(matrix), row(row) {}
+
+            Row operator*() {
+                return Row(matrix, row);
+            }
+
+            iterator& operator++() {
+                row++;
+                return *this;
+            }
+
+
+            iterator& operator--() {
+                row--;
+                return *this;
+            }
+
+
+            iterator& operator+=(difference_type n) {
+                row += n;
+                return *this;
+            }
+
+            iterator operator+(difference_type n) {
+                return iterator(matrix, row + n);
+            }
+
+            iterator& operator-=(difference_type n) {
+                row -= n;
+                return *this;
+            }
+
+            iterator operator-(difference_type n) {
+                return iterator(matrix, row - n);
+            }
+
+            difference_type operator-(const iterator& other) {
+                return row - other.row;
+            }
+
+            Row operator[](difference_type n) {
+                return Row(matrix, row + n);
+            }
+
+            bool operator==(const iterator& other) {
+                return row == other.row;
+            }
+
+            bool operator!=(const iterator& other) {
+                return !(*this == other);
+            }
+
+            bool operator<(const iterator& other) {
+                return row < other.row;
+            }
+
+            bool operator>(const iterator& other) {
+                return row > other.row;
+            }
+
+            bool operator<=(const iterator& other) {
+                return row <= other.row;
+            }
+
+            bool operator>=(const iterator& other) {
+                return row >= other.row;
+            }
+        };
+
+        iterator begin() {
+            return iterator(matrix, 0);
+        }
+
+        iterator end() {
+            return iterator(matrix, matrix.n);
+        }
+    };
+
+    class Col_view {
+        Matrix& matrix;
+
+    public:
+        Col_view(Matrix& matrix) : matrix(matrix) {}
+
+        class iterator {
+            Matrix& matrix;
+            int col;
+
+        public:
+            using iterator_category = std::random_access_iterator_tag;
+            using value_type = Column;
+            using difference_type = std::ptrdiff_t;
+            using pointer = Column*;
+            using reference = Column&;
+
+            iterator(Matrix& matrix, int col) : matrix(matrix), col(col) {}
+
+            Column operator*() {
+                return Column(matrix, col);
+            }
+
+            iterator& operator++() {
+                ++col;
+                return *this;
+            }
+
+            iterator& operator--() {
+                --col;
+                return *this;
+            }
+
+
+            iterator& operator+=(difference_type n) {
+                col += n;
+                return *this;
+            }
+
+            iterator operator+(difference_type n) {
+                return iterator(matrix, col + n);
+            }
+
+            iterator& operator-=(difference_type n) {
+                col -= n;
+                return *this;
+            }
+
+            iterator operator-(difference_type n) {
+                return iterator(matrix, col - n);
+            }
+
+            difference_type operator-(const iterator& other) {
+                return col - other.col;
+            }
+
+            Column operator[](difference_type n) {
+                return Column(matrix, col + n);
+            }
+
+            bool operator==(const iterator& other) {
+                return col == other.col;
+            }
+
+            bool operator!=(const iterator& other) {
+                return !(*this == other);
+            }
+
+            bool operator<(const iterator& other) {
+                return col < other.col;
+            }
+
+            bool operator>(const iterator& other) {
+                return col > other.col;
+            }
+
+            bool operator<=(const iterator& other) {
+                return col <= other.col;
+            }
+
+            bool operator>=(const iterator& other) {
+                return col >= other.col;
+            }
+        };
+
+        iterator begin() {
+            return iterator(matrix, 0);
+        }
+
+        iterator end() {
+            return iterator(matrix, matrix.m);
+        }
+    };
+
+    Row_view iter_rows() {
+        return Row_view(*this);
+    }
+
+    Col_view iter_cols() {
+        return Col_view(*this);
+    }
+};
+
+int main() {
+    Matrix A("[[1,2,3],[4,5,6],[7,8,9],[10,11,12]]");
+
+    std::cout << "Rows:" << std::endl;
+    for (auto&& row : A.iter_rows()) {
+        for (auto&& elem : row) {
+            std::cout << elem << ' ';
+        }
+
+    }
+    std::cout << std::endl;
+    std::cout << "Cols:" << std::endl;
+    for (auto&& col : A.iter_cols()) {
+        for (auto&& elem : col) {
+            std::cout << elem << ' ';
+        }
+        //std::cout << std::endl;
+    }
+
+
+}
