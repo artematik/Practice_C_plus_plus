@@ -1,0 +1,354 @@
+#include <iostream>
+#include <cmath>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+using namespace std;
+
+class Circle
+{
+private:
+    double radius,
+        ference,//длина окружности
+        area; //площадь круга
+public:
+    Circle(double radius_k) //конструктор класса
+    {
+        SetRadius(radius_k);
+    }
+    void SetRadius(double radius_k)
+    {
+        radius = radius_k;
+    }
+    void SetFerence()
+    {
+        ference = 2*3.14*radius;
+    }
+    void SetArea()
+    {
+        area = radius*radius*3.14;
+    }
+    double GetArea()
+    {
+        return area;
+    }
+    double GetFerence()
+    {
+        return ference;
+    }
+    double GetRadius()
+    {
+        return radius;
+    }
+};
+
+void task1()
+{
+    double r_earth = 6378.1;
+    Circle odjCircle(r_earth);
+    odjCircle.SetFerence();
+    double len1 = odjCircle.GetFerence();
+    double len_new = len1 + 1;
+    double r_earth_new = len_new / (2 * 3.14);
+    std::cout << "Answer for the first task: \n" << r_earth_new - r_earth;
+}
+
+void task2()
+{
+    std::cout << "\n\n" << "Answers for the second task:\n";
+    double r_pool = 3;
+    double r_track = r_pool + 1;
+    // посчитаем площадь дорожки()
+    Circle pool(r_pool);
+    Circle track(r_track);
+    pool.SetArea();
+    track.SetArea();
+    double area_track = track.GetArea() - pool.GetArea();
+    std::cout << "The price for the road: " << ceil(area_track)*1000;
+
+    track.SetFerence();
+    std::cout << "\n" << "The price for the refence: "<< ceil(track.GetFerence())*1000<<"\n";
+
+    
+}
+
+
+string determine_month(int n)
+{
+    string mon = "";
+    switch (n)
+    {
+    case 1:
+        mon = "January";
+        break;
+
+    case 2:
+        mon = "February";
+        break;
+
+    case 3:
+        mon = "March";
+        break;
+
+    case 4:
+        mon = "April";
+        break;
+
+    case 5:
+        mon = "May";
+        break;
+
+    case 6:
+        mon = "June";
+        break;
+
+    case 7:
+        mon = "July";
+        break;
+
+    case 8:
+        mon = "August";
+        break;
+
+    case 9:
+        mon = "September";
+        break;
+
+    case 10:
+        mon = "October";
+        break;
+
+    case 11:
+        mon = "November";
+        break;
+
+    case 12:
+        mon = "December";
+        break;
+    }
+    return mon;
+}
+
+
+struct DataTime {
+    int day;
+    int month;
+    int year;
+    string day_of;
+    
+    char day_of_the_week[8];
+    
+    
+    
+    DataTime(int d, int m, int y) {
+        day = d;
+        month = m;
+        year = y;
+        
+        tm timeinfo = {};
+        timeinfo.tm_year = year - 1900;
+        timeinfo.tm_mon = month - 1;
+        timeinfo.tm_mday = day;
+    
+        mktime(&timeinfo);
+    
+        const char* weekdays[] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+        int day_of_week = timeinfo.tm_wday;
+        day_of = weekdays[day_of_week];
+    }
+    
+    DataTime(string dat) {
+        tm date = {};
+        istringstream ss(dat);
+        ss >> get_time(&date, "%d %B %Y %a");
+        day = date.tm_mday;
+        month = date.tm_mon + 1;
+        year = date.tm_year + 1900;
+        strftime(day_of_the_week, 8, "%A", &date);
+    }
+        
+    
+    DataTime() {
+        time_t now = time(0);
+        tm* snow = localtime(&now);
+        year = snow->tm_year + 1900;
+        month = snow->tm_mon + 1;
+        day = snow->tm_mday;
+        
+        tm timeinfo = {};
+        timeinfo.tm_year = year - 1900;
+        timeinfo.tm_mon = month - 1;
+        timeinfo.tm_mday = day;
+    
+        mktime(&timeinfo);
+    
+        const char* weekdays[] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+        int day_of_week = timeinfo.tm_wday;
+        day_of = weekdays[day_of_week];
+    }
+    
+    DataTime(DataTime& orig)  {
+        day = orig.day;
+        month = orig.month;
+        year = orig.year;
+        
+    }
+    
+    void get_today() {
+        string mon = determine_month(month);
+        cout << day << ' ' << mon << ' ' << year << ", " << day_of << day_of_the_week << endl;
+    }
+    
+    
+    
+    void get_yesterday() {
+        DataTime yesterday(day-1, month, year);
+        if (yesterday.day == 0) {
+            if (yesterday.month == 1 || yesterday.month == 3 || yesterday.month == 5 || yesterday.month == 7 || yesterday.month == 8 || yesterday.month == 10 || yesterday.month == 12) {
+                yesterday.day += 31;
+                if (yesterday.month == 1) {
+                    yesterday.month = 12;
+                    yesterday.year--;
+                }
+                else {
+                    yesterday.month--;
+                }
+                
+            }
+            else {
+                yesterday.day += 30;
+                if (yesterday.month == 1) {
+                    yesterday.month = 12;
+                }
+                else {
+                    yesterday.month--;
+                }
+            }
+        }
+        string mon = determine_month(yesterday.month);
+        cout << yesterday.day << ' ' << mon << ' ' << yesterday.year << ", " << yesterday.day_of << day_of_the_week << endl;
+    }
+    
+    
+    void get_tomorrow() {
+        DataTime tomorrow(day+1, month, year);
+        if ((tomorrow.day >= 31) || (tomorrow.month == 2 && tomorrow.day >= 29)) {
+            if (tomorrow.month == 1 || tomorrow.month == 3 || tomorrow.month == 5 || tomorrow.month == 7 || tomorrow.month == 8 || tomorrow.month == 10 || tomorrow.month == 12) {
+                tomorrow.day -= 31;
+                if (tomorrow.month == 12) {
+                    tomorrow.month = 1;
+                    tomorrow.year++;
+                }
+                else {
+                    tomorrow.month++;
+                }
+                
+            }
+            else if ( tomorrow.month == 2) {
+                tomorrow.day -= 28;
+                tomorrow.month++;
+            }
+            else {
+                tomorrow.day -= 30;
+                tomorrow.month++;
+            }
+        }
+        
+        string mon = determine_month(tomorrow.month);
+        
+        cout << tomorrow.day << ' ' << mon << ' ' << tomorrow.year << ", " << tomorrow.day_of << day_of_the_week << endl;
+    }
+    
+    
+    void get_future(unsigned int N) {
+        tm newtime = {};
+        newtime.tm_year = year - 1900; 
+        newtime.tm_mon = month - 1;     
+        newtime.tm_mday = day;
+    
+        mktime(&newtime);  
+    
+        newtime.tm_mday += N;  
+        mktime(&newtime);
+        
+        string mon = determine_month(newtime.tm_mon+1);
+            
+        const char* weekdays[] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+        int day_of_week = newtime.tm_wday;
+        day_of = weekdays[day_of_week];
+        
+        cout << newtime.tm_mday << ' ' << mon << ' ' << newtime.tm_year+1900 << ", " << day_of << day_of_the_week << endl;
+    }
+    
+    
+    
+    void get_past(unsigned int N) {
+        tm newtime = {};
+        newtime.tm_year = year - 1900; 
+        newtime.tm_mon = month - 1;     
+        newtime.tm_mday = day;
+    
+        mktime(&newtime);  
+    
+        newtime.tm_mday -= N;
+        mktime(&newtime);
+        
+        string mon = determine_month(newtime.tm_mon+1);
+        
+        const char* weekdays[] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+        int day_of_week = newtime.tm_wday;
+        day_of = weekdays[day_of_week];
+        
+        cout << newtime.tm_mday << ' ' << mon << ' ' << newtime.tm_year+1900 << ", " << day_of << day_of_the_week << endl;
+    }
+    
+    void get_difference(DataTime& second) {
+        tm t1 = {};
+        t1.tm_year = year - 1900; 
+        t1.tm_mon = month - 1;     
+        t1.tm_mday = day;
+        mktime(&t1);
+        
+        tm t2 = {};
+        t2.tm_year = second.year - 1900;
+        t2.tm_mon = second.month - 1;
+        t2.tm_mday = second.day;
+        mktime(&t2);
+        
+        time_t time1 = mktime(&t1);
+        time_t time2 = mktime(&t2);
+
+        int difference = abs((time2-time1) / (3600 * 24));
+        cout << difference << " days difference" <<endl;
+        
+    }
+    
+    
+    
+};
+
+int main()
+{
+    task1();
+    task2();
+    cout<<"\n\n\n";
+
+
+
+
+    DataTime date;
+    DataTime date2(date);
+    DataTime date3("22 January 2024, Monday");
+    DataTime date4(31, 12, 2024);
+    DataTime date5(1, 12, 2024);
+    date.get_today();
+    date.get_yesterday();
+    date.get_tomorrow();
+
+    date4.get_today();
+    date4.get_tomorrow();
+    date4.get_yesterday();
+    date4.get_future(31);
+    date4.get_past(31);
+    date4.get_difference(date5);
+}
