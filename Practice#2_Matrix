@@ -1,0 +1,587 @@
+#include <iostream>
+#include <string>
+#include <vector>
+
+class Matrix
+{
+private:
+	int n=0;
+	int m=0;
+	double* data;
+
+	void Create()
+	{
+		this->data = new double[n * m];
+		for (int i = 0; i < n * m; ++i) this->data[i] = 0;
+	}
+	Matrix transpone(double* mas, int size1, int size2)
+	{
+		Matrix trans;
+		trans.n = this->n;
+		trans.m = this->m;
+		trans.data = new double[n * m];
+		for (int i = 0; i < n * m; ++i) trans.data[i] = 0;
+		for (int i = 0; i < size1; ++i)
+		{
+			for (int j = 0; j < size2; ++j)
+			{
+				trans.data[j * size2 + i] = mas[i * size1 + j];
+			}
+		}
+		return trans;
+	}
+	double* transpone()
+	{
+		double* trans = new double[m * n];
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = 0; j < m; ++j)
+			{
+				trans[j * m + i] = data[i * n + j];
+			}
+		}
+		return trans;
+	}
+	// Получение матрицы без i-й строки и j-го столбца
+// (функция нужна для вычисления определителя и миноров)
+	double* GetMatr(double* mas, int rows, int cols, int row, int col) 
+	{
+		this->n = rows;
+		this->m = cols;
+		for (int i = 0; i < rows; ++i)
+		{
+			for (int j = 0; j < rows; ++j)
+			{
+				std::cout << mas[i * rows + j] << " ";
+			}
+			std::cout << "\n";
+		}
+		std::cout << "\n";
+		int di, dj;
+		double* p = new double [(rows-1)*(cols-1)];
+		for (int i = 0; i < (rows-1) * (cols-1);++i) p[i] = 0;
+		di = 0;
+		for (int i = 0; i < rows-1; i++) 
+		{
+			if (i == row)
+				di = 1;
+			dj = 0;
+			for (int j = 0; j < cols-1; j++) { // проверка индекса столбца
+				if (j == col)  // столбец совпал с вычеркиваемым
+					dj = 1;    // - дальше индексы на 1 больше
+				p[i*(rows-1)+j] = mas[m * (i + di) + j + dj];
+			}
+		}
+		for (int i = 0; i < rows - 1; ++i)
+		{
+			for (int j = 0; j < cols - 1; ++j)
+			{
+				//std::cout << p[i * (cols-1) + j] << " ";
+			}
+			std::cout << "\n";
+		}
+
+		return p;
+	}
+
+	double* GetMatr_det(double* mas, int rows, int cols, int row, int col)
+	{
+		this->n = rows;
+		this->m = cols;
+		int di, dj;
+		double* p = new double[(rows - 1) * (cols - 1)];
+		for (int i = 0; i < (rows - 1) * (cols - 1);++i) p[i] = 0;
+		di = 0;
+		for (int i = 0; i < rows - 1; i++)
+		{
+			if (i == row)
+				di = 1;
+			dj = 0;
+			for (int j = 0; j < cols - 1; j++) { // проверка индекса столбца
+				if (j == col)  // столбец совпал с вычеркиваемым
+					dj = 1;    // - дальше индексы на 1 больше
+				p[i * (rows - 1) + j] = mas[m * (i + di) + j + dj];
+			}
+		}
+		return p;
+	}
+
+	// Рекурсивное вычисление определителя
+	double Determinant(double* mas, int size)
+	{
+		//std::cout << "Determinant";
+		double d = 0;
+		double* arr = 0;
+		int k = 1; //(-1) в степени i
+		if (size < 1) { std::cout<<"Определитель вычислить невозможно!"; return 0; }
+		if (size == 1) { d = mas[0]; return(d); }
+		if (size == 2) 
+		{ 
+			d = mas[0] * mas[3] - (mas[1] * mas[2]);
+			return(d);
+		}
+		if (size > 2)
+		{
+			for (int i = 0; i < size; i++)
+			{
+				arr = GetMatr_det(mas, size, size, 0, i);
+				d = d + k * mas[i] * Determinant(arr, size-1);
+				//std::cout << "\n" << d << "\n";
+				k *= -1; 
+			}
+		}
+		return(d);
+	}
+	Matrix Mreverse(double* mas, int size)
+	{
+		double* rez = new double[size * size];
+		double det = Determinant(mas, size);
+		for (int i = 0; i < size; ++i)
+		{
+			for (int j = 0; j < size; ++j)
+			{
+				rez[i * size + j] = Determinant(GetMatr(mas, size, size, i, j), size - 1);
+				if ((i + j) % 2 == 1)       // если сумма индексов строки и столбца нечетная
+					rez[i*size+j] = -rez[i*size+j];    // меняем знак минора
+				rez[i*size+j] = rez[i*size+j] / det;
+			}
+		}
+		return transpone(rez,size,size);
+	}
+public:
+	Matrix(std::string s)
+	{
+		std::string value;
+		int size = 0;
+		int count = 0;
+		for (int i = 1; i < s.size() - 1; ++i)
+		{
+			if (s[i] == '[')
+			{
+				size++;
+			}
+			if (s[i] == ',')
+			{
+				count++;
+			}
+		}
+		count += size;
+		count /= size;
+		this->n = size;
+		this->m = count;
+		//создали массив для данных нашей матрицы
+		this->data = new double[this->n * this->m];
+		for (int i = 0; i < this->m * this->n; ++i) this->data[i] = 0;
+
+		int index = 0;
+		for (int i = 1; i < s.size() - 1; i++)
+		{
+			if ((48 <= s[i] && s[i] <= 57) || s[i] == '.')
+			{
+				value += s[i];
+			}
+			else
+			{
+				if (value != "")
+				{
+					double number = stod(value);
+					this->data[index] = number;
+					index++;
+					value = "";
+				}
+			}
+		}
+	}
+	
+	Matrix()
+	{
+		Create();
+	}
+	Matrix(const Matrix&copy)
+	{
+		this->n = copy.n;
+		this->m = copy.m;
+		this->data = new double[copy.n * copy.m];
+		for (int i = 0; i < copy.n; i++)
+		{
+			for (int j = 0; j < copy.m; j++)
+			{
+				this->data[i * m + j] = copy.data[i * m + j];
+			}
+		}
+	}
+	Matrix(Matrix&& moved)
+	{
+		this->n = moved.n;
+		this->m = moved.m;
+		data = moved.data;
+		moved.data = nullptr;
+	}
+	Matrix(int n, int m)
+	{
+		this->n = n;
+		this->m = m;
+		Create();
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = 0; j < m; ++j)
+			{
+				this->data[i * m + j] = 0;
+			}
+		}
+
+	}
+	Matrix(int n, int m, double value)
+	{
+		this->n=n;
+		this->m=m;
+		Create();
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = 0; j < m; ++j)
+			{
+				this->data[i * m + j] = value;
+			}
+		}
+	}
+	~Matrix()
+	{
+		
+	}
+	int Get_rows()
+	{
+		return n;
+	}
+	int Get_cols()
+	{
+		return m;
+	}
+	void Identity(int n, int m)
+	{
+		if (n == m)
+		{
+			this->n = n;
+			this->m = m;
+			this->data = new double[n * m];
+			for (int i = 0; i < n; ++i)
+			{
+				for (int j = 0; j < m; ++j)
+				{
+					if (j == i)
+						this->data[i * m + j] = 1;
+					else
+						this->data[i * m + j] = 0;
+				}
+			}
+		}
+		else
+		{
+			std::cout << "This operation works only for the square matrix";
+		}
+			
+
+		
+	}
+	void Zero(int n, int m)//сделано
+	{
+		this->n = n;
+		this->m = m;
+		Create();
+	}
+	void Random(int n, int m)//сделано
+	{
+		this->n = n;
+		this->m = m;
+		Create();
+		for (int i = 0; i < n * m; ++i) this->data[i] = (double)rand() / rand();
+	}
+	void FromString()//сделано
+	{
+		std::cout << "[";
+		for (int i = 0; i < n; ++i)
+		{
+			std::cout << "[";
+			for (int j = 0; j < m; ++j)
+			{
+				if (j + 1 != m)
+					std::cout << this->data[i * m + j] << ",";
+				else
+					std::cout << this->data[i * m + j];
+			}
+			if (i + 1 != n)
+				std::cout << "],";
+			else
+				std::cout << "]";
+		}
+		std::cout << "]\n";
+	}
+	void Print()
+	{
+		for (int i = 0; i < this->n; ++i)
+		{
+			for (int j = 0; j < this->m; ++j)
+			{
+				std::cout << this->data[i * m + j] << " ";
+			}
+			std::cout << std::endl;
+		}
+	}
+	double sum()
+	{
+		double ans = 0;
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = 0; j < m; ++j)
+			{
+				ans += data[i * m + j];
+			}
+		}
+		return ans;
+	}
+	Matrix T()//транспонирование матрицы
+	{
+		Matrix trans;
+		trans.n = this->m;
+		trans.m = this->n;
+		trans.data = new double[m * n];
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = 0; j < m; ++j)
+			{
+				trans.data[j * n + i] = data[i * m + j];
+			}
+		}
+		return trans;
+	}
+	//перегрузка операторов
+	Matrix operator-(const Matrix& other)
+	{
+		Matrix temp;
+		temp.n = other.n;
+		temp.m = other.m;
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = 0; j < m; ++j)
+			{
+				temp.data[i * m + j] = this->data[i * m + j] - other.data[i * m + j];
+			}
+		}
+		return temp;
+	}
+	Matrix operator * (const Matrix& other)
+	{
+		Matrix temp;
+		temp.n = this->n;
+		temp.m = other.m;
+		temp.data = new double[temp.n * temp.m];
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = 0; j < m; ++j)
+			{
+				temp.data[i * m + j] = 0;
+				for (int k = 0; k < other.m; k++)
+				{
+					temp.data[i * m + j] += this->data[i * other.m + k] * other.data[k * other.m + j];
+				}
+			}
+		}
+		return temp;
+	}
+	Matrix operator * (double num)
+	{
+		Matrix temp;
+		temp.n = this->n;
+		temp.m = this->m;
+		temp.data = new double[n * m];
+		for (int i = 0; i < n * m; i++) temp.data[i] = 0;
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = 0; j < m; ++j)
+			{
+				temp.data[i * m + j] = data[i * m + j]*num;
+			}
+		}
+		return temp;
+	}
+	Matrix operator/(double num)
+	{
+		Matrix temp;
+		temp.n = this->n;
+		temp.m = this->m;
+		temp.data = new double[n * m];
+		for (int i = 0; i < n * m; i++) temp.data[i] = 0;
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = 0; j < m; ++j)
+			{
+				temp.data[i * m + j] = data[i * m + j] / num;
+			}
+		}
+		return temp;
+	}
+	
+	Matrix operator / (const Matrix& other)
+	{
+		Matrix temp1 = Mreverse(other.data, other.n);
+		Matrix temp2;
+		temp2.n = this->n;
+		temp2.m = this->m;
+		temp2.data = data;
+		return temp2*temp1;
+	}
+	Matrix operator + (const Matrix& other)
+	{
+		Matrix temp;
+		temp.n = other.n;
+		temp.m = other.m;
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = 0; j < m; ++j)
+			{
+				temp.data[i*m+j] = this->data[i*m+j] + other.data[i*m+j];
+			}
+		}
+		return temp;
+	}
+	
+	Matrix & operator = (const Matrix& other)
+	{
+		this->n = other.n;
+		this->m = other.m;
+		this->data = new double[n*m];
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = 0; j < m; ++j)
+			{
+				this->data[i*m+j] = other.data[i*m+j];
+			}
+		}
+		return *this;
+	}
+	double operator()(int i, int j)
+	{
+		if (i >= n || j >= m)
+		{
+			std::cout << "Index out of range";
+			return 0;
+		}
+		return data[i*m+j];
+	}
+	bool operator == (const Matrix& other)
+	{
+		if (this->n != other.n || this->m != other.m)
+		{
+			return false;
+		}
+		bool flag = true;
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = 0; j < m; ++j)
+			{
+				if (this->data[i * m + j] != other.data[i])
+				{
+					flag = false;
+					break;
+				}
+			}
+			if (!flag)
+			{
+				break;
+			}
+		}
+		return flag;
+	}
+	bool operator != (const Matrix& other)
+	{
+		if (this->n != other.n || this->m != other.m)
+		{
+			return true;
+		}
+		bool flag = false;
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = 0; j < m; ++j)
+			{
+				if (this->data[i * m + j] != other.data[i])
+				{
+					flag = true;
+					break;
+				}
+			}
+			if (flag)
+			{
+				break;
+			}
+		}
+		return flag;
+	}
+	Matrix operator-()
+	{
+		for (int i = 0; i < n; i++)
+		{
+			for (int j = 0; j < m; j++)
+			{
+				data[i * m + j] *= (-1);
+			}
+		}
+		return *this;
+	}
+	double ans()
+	{
+		int k = n;
+		return Determinant(data, k);
+	}
+	Matrix matrix_rev()
+	{
+		return Mreverse(this->data, this->n);
+	}
+};
+
+std::ostream& operator<<(std::ostream& os, Matrix& matrix)
+{
+	matrix.Print();
+	return os;
+}
+
+Matrix operator * (double num, Matrix matrix)
+{
+	return matrix.operator*(num);
+}
+
+
+int main()
+{
+	Matrix A("[[1,2,3],[4,5,6],[7,8,9]]");
+	A.Print();
+	std::cout << std::endl;
+	Matrix B;
+	B.Random(3, 3);
+	A.T().Print();
+	std::cout << "\n";
+	double check_zero = A.ans();
+	if (check_zero || B.Get_cols()!= (A.T()).Get_rows() || B.T().Get_cols()!=A.Get_rows() || A.Get_cols()!=B.Get_rows())
+	{
+		auto result = ((A * B) - (B / (A.T())) * A.sum()) + (B.T() * A / B.sum());
+		std::cout << result;
+	}
+	else
+	{
+		std::cout << "ERROR!";
+	}
+	/*std::cout << "\n";
+	Matrix B;
+	B.Random(3,4);
+	std::cout << "\n" << B << "\n";
+	A = A.T();
+	std::cout << A;*/
+	//auto result = (A*B)-(B/(A.T()));
+
+
+
+	/*Matrix c("[[2,3,4],[1,6,7],[0,1,2]]");
+	c.Print();
+	std::cout << "\n" << c << "\n";
+	b = a / c;
+	std::cout << "\n" << b << "\n";*/
+	
+}
