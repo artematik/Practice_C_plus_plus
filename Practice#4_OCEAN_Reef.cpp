@@ -12,3 +12,5 @@ char Reef::getSymbol()
 {
 	return REEF_N;
 };
+template<>
+MemoryPool<Reef> PoolMix<Reef>::p(200);
