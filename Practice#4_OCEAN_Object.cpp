@@ -36,3 +36,5 @@ ObjType Object::getType()
 {
 	return type;
 }
+template<>
+MemoryPool<Object> PoolMix<Object>::p(200);
