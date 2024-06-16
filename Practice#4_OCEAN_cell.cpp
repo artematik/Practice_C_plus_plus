@@ -59,3 +59,5 @@ bool Cell::CHECK()
 {
 	return ocean->chek_to_defence(crd);
 }
+template<>
+MemoryPool<Cell> PoolMix<Cell>::p(200);
