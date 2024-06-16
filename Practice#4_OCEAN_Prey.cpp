@@ -43,3 +43,5 @@ void Prey::copulation()
 
 
 }
+template<>
+MemoryPool<Prey> PoolMix<Prey>::p(200);
