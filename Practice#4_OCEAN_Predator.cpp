@@ -53,3 +53,5 @@ void Predator::copulation()
 	cell->getOcean()->AddStuff(child);
 	}
 }
+template<>
+MemoryPool<Predator> PoolMix<Predator>::p(200);
