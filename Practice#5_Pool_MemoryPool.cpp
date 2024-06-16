@@ -13,18 +13,18 @@ class MemoryPool
 	vector<El*> p;
 	size_t size, ind;
 public:
-	MemoryPool() :size(0), ind(0) {}
+	MemoryPool() :size(0), ind(0){}
 	MemoryPool(size_t power) :size(power), ind(0)
 	{
-		p.resize(size, nullptr);
-		for (auto** elem : p)
+		p.resize(size,nullptr);
+		for (auto elem:p)
 		{
-			elem = reinterpret_cast<El*>(operator new)(sizeof(El));
+			elem = reinterpret_cast<El*>(operator new(sizeof(El)));
 		}
 	}
 	~MemoryPool()
 	{
-		for (auto** elem : p)
+		for (auto elem : p)
 		{
 			operator delete(elem);
 		}
@@ -67,7 +67,7 @@ public:
 };
 
 template<typename Rec>
-class PoolMix {
+class PoolMix{
 public:
 	static void* operator new(size_t n)
 	{
