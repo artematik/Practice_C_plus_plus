@@ -6,7 +6,8 @@
 #include <time.h>
 #include <iterator>
 #include <algorithm>
-#include  <string>
+#include <string>
+#include <MemoryPool.cpp>
 
 typedef size_t coord_t;
 
