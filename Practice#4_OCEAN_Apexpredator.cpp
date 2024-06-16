@@ -69,3 +69,5 @@ void ApexPredator::copulation()
 		cell->getOcean()->AddStuff(child);
 	}
 }
+template<>
+MemoryPool<ApexPredator> PoolMix<ApexPredator>::p(200);
