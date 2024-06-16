@@ -12,4 +12,5 @@ char Stone::getSymbol()
 {
 	return STONE_N;
 };
+template<>
 MemoryPool<Stone> PoolMix<Stone>::p(200);
